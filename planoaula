@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Título e descrição para SEO e compartilhamento -->
+  <title>Gerador de Planos de Aula e Quinzenal</title>
+  <meta name="description" content="Plataforma para Gerar Planos de Aula e Quinzenal de Forma Rápida e Eficiente, Totalmente Personalizável">
+
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Gerador de Planos de Aula e Quinzenal">
+  <meta property="og:description" content="Plataforma para Gerar Planos de Aula e Quinzenal de Forma Rápida e Eficiente, Totalmente Personalizável">
+  <meta property="og:image" content="icone.png">
+  <meta property="og:image:alt" content="Ícone do Gerador de Planos de Aula">
+  <meta property="og:url" content="https://profbenjanuario.netlify.app/">
+  <meta property="og:locale" content="pt_BR">
+
+  <!-- Twitter (opcional, mas recomendado) -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Gerador de Planos de Aula e Quinzenal">
+  <meta name="twitter:description" content="Plataforma para Gerar Planos de Aula e Quinzenal de Forma Rápida e Eficiente, Totalmente Personalizável">
+  <meta name="twitter:image" content="icone.png">
+
+  <title>Redirecionando...</title>
+  <style>
+    body {
+      font-family: 'Times', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin: 5px 0;
+    }
+
+    .loader {
+      border: 6px solid rgba(255,255,255,0.3);
+      border-top: 6px solid #fff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 20px 0;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+
+    a {
+      color: #ffea00;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <script>
+    // Redirecionamento automático após 2 segundos
+    setTimeout(() => {
+      window.location.href = "https://profbenjanuario.netlify.app/";
+    }, 2000);
+  </script>
+</head>
+<body>
+  <h1>Bem-vindo!</h1>
+  <p>Você será redirecionado ao site do Prof. Benjanuário em breve.</p>
+  <div class="loader"></div>
+  <p>Se não for redirecionado automaticamente, <a href="https://profbenjanuario.netlify.app/">clique aqui</a>.</p>
+</body>
+</html>
