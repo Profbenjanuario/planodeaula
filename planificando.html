@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Planificando — Gerador de Planos de Aula</title>
+  <meta name="description" content="Planificando — Gere, edite e exporte planos de aula rapidamente." />
+  <meta name="author" content="Professor Benjamim" />
+  <!-- Favicons (simples inline for portability) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+  <style>
+    /* Reset mínimo */
+    :root{
+      --bg:#f7f8fb;
+      --card:#ffffff;
+      --muted:#7b7f87;
+      --accent:#4285f4;
+      --accent-2:#34a853;
+      --danger:#e53935;
+      --glass: rgba(255,255,255,0.7);
+      --radius:12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg,var(--bg),#eef1f6);
+      color:#111827;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+      padding-bottom:60px;
+    }
+    a{color:var(--accent); text-decoration:none}
+    /* Layout */
+    .container{max-width:1100px;margin:0 auto;padding:28px;}
+    header.site-header{
+      position:sticky;top:0;z-index:900;
+      backdrop-filter: blur(6px);
+      background:rgba(255,255,255,0.55);
+      border-bottom:1px solid rgba(16,24,40,0.04);
+    }
+    .nav{
+      display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+    }
+    .brand{display:flex;gap:12px;align-items:center;font-weight:700}
+    .brand .logo{
+      width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:20px;
+      box-shadow:0 6px 20px rgba(66,133,244,0.18);
+    }
+    nav.primary{display:flex;gap:14px;align-items:center}
+    nav.primary a{padding:8px 12px;border-radius:8px;color:var(--muted);font-weight:600;}
+    nav.primary a.cta{background:linear-gradient(45deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 6px 18px rgba(50,100,250,0.08)}
+    .hero{
+      display:grid;grid-template-columns:1fr 420px;gap:28px;align-items:center;margin:28px 0 36px;
+    }
+    .hero .left h1{font-size:32px;margin:0 0 10px}
+    .hero .left p{color:var(--muted);margin:0 0 18px}
+    .search-card{
+      background:var(--card);padding:18px;border-radius:14px;box-shadow:0 6px 20px rgba(16,24,40,0.04);
+    }
+    .cta-row{display:flex;gap:12px;flex-wrap:wrap}
+    .btn{padding:12px 16px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .btn.ghost{background:transparent;border:1px solid rgba(16,24,40,0.06)}
+    .btn.primary{background:linear-gradient(45deg,var(--accent),var(--accent-2));color:#fff}
+    /* Cards grid */
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 16px rgba(16,24,40,0.04)}
+    .small{font-size:13px;color:var(--muted)}
+    /* Responsive */
+    @media (max-width:980px){
+      .hero{grid-template-columns:1fr; padding:0 12px}
+      .grid{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:640px){
+      .grid{grid-template-columns:1fr}
+      nav.primary{display:none}
+      .nav{padding:10px 14px}
+    }
+
+    /* Big footer */
+    footer.site-footer{
+      margin-top:36px;padding:28px 0;background:transparent;color:var(--muted);
+      border-top:1px solid rgba(16,24,40,0.02)
+    }
+
+    /* Forms and editor */
+    .form-row{display:flex;gap:12px;flex-wrap:wrap}
+    .input, textarea, select{padding:12px;border-radius:10px;border:1px solid rgba(16,24,40,0.06);width:100%;font-size:15px}
+    textarea{min-height:120px;resize:vertical}
+    .label{font-weight:700;font-size:13px;margin-bottom:6px;display:block}
+
+    /* Timeline / schedule */
+    .timeline{background:linear-gradient(180deg,#fff,#fbfdff);padding:12px;border-radius:12px;border:1px solid rgba(16,24,40,0.03)}
+    .timeline .item{display:flex;gap:12px;padding:10px;border-bottom:1px dashed rgba(16,24,40,0.03)}
+    .timeline .item:last-child{border-bottom:0}
+    .timeline .time{min-width:70px;font-weight:700;color:var(--accent)}
+    .timeline .meta{color:var(--muted);font-size:13px}
+
+    /* util */
+    .muted{color:var(--muted)}
+    .mb-8{margin-bottom:32px}
+    .card-hero{display:flex;gap:12px;align-items:center;padding:18px;border-radius:14px;background:linear-gradient(180deg,#fff,#f7fbff);box-shadow:0 8px 30px rgba(66,133,244,0.06)}
+    pre.code-sample{background:#0b1220;color:#e6eef5;padding:12px;border-radius:8px;overflow:auto;font-family:var(--mono);font-size:13px}
+  </style>
+</head>
+<body>
+  <header class="site-header" role="banner">
+    <div class="nav container" role="navigation">
+      <div class="brand" aria-label="Planificando">
+        <div class="logo" aria-hidden="true">📚</div>
+        <div>
+          <div style="font-size:14px;color:#111827">Planificando</div>
+          <div style="font-size:12px;color:var(--muted)">Gerador de planos de aula</div>
+        </div>
+      </div>
+      <nav class="primary" role="menubar">
+        <a href="#features">Recursos</a>
+        <a href="#templates">Modelos</a>
+        <a href="#faq">Ajuda</a>
+        <a href="#contact" class="cta">Entrar / Registrar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" role="main">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="left">
+        <h1>Gere planos de aula práticos em minutos</h1>
+        <p class="muted">Crie, organize e exporte planos de aula para diferentes durações — 45 ou 90 minutos. Fácil de editar e imprimir.</p>
+        <div class="search-card">
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="flex:1">
+              <label class="label">Disciplina</label>
+              <select id="disciplina" class="input">
+                <option>Português</option>
+                <option>Matemática</option>
+                <option>Ciências</option>
+                <option>História</option>
+                <option>Geografia</option>
+              </select>
+            </div>
+            <div style="width:130px">
+              <label class="label">Duração</label>
+              <select id="duracao" class="input">
+                <option value="45">45 min</option>
+                <option value="90">90 min</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+            <button id="generatePlan" class="btn primary">Gerar Plano</button>
+            <button id="downloadPDF" class="btn ghost">Exportar PDF</button>
+            <div style="flex:1;text-align:right;color:var(--muted);font-size:13px">Modelo: Aula individual</div>
+          </div>
+        </div>
+
+        <div class="grid" aria-hidden="false">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-weight:800">Modelos rápidos</div>
+                <div class="small">Planos prontos para imprimir</div>
+              </div>
+              <div style="font-size:20px">⚡</div>
+            </div>
+            <div style="height:12px"></div>
+            <p class="muted">Use modelos pré-configurados para diferentes anos e conteúdos.</p>
+            <div style="height:12px"></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn ghost">Ver modelos</button>
+              <button class="btn">Personalizar</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-weight:800">Cronograma interativo</div>
+                <div class="small">Sequência de atividades</div>
+              </div>
+              <div style="font-size:20px">📅</div>
+            </div>
+            <div style="height:12px"></div>
+            <div class="timeline">
+              <div class="item"><div class="time">00-10</div><div><strong>Boas-vindas</strong><div class="meta">Atividade de acolhimento</div></div></div>
+              <div class="item"><div class="time">10-30</div><div><strong>Exploração</strong><div class="meta">Apresentação do tema</div></div></div>
+              <div class="item"><div class="time">30-45</div><div><strong>Atividade prática</strong><div class="meta">Exercício em pares</div></div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-weight:800">Gerenciamento</div>
+                <div class="small">Salvar e compartilhar</div>
+              </div>
+              <div style="font-size:20px">🔒</div>
+            </div>
+            <p class="muted" style="margin-top:12px">Controle versões dos seus planos e exporte em PDF ou HTML.</p>
+            <div style="height:12px"></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn">Salvar</button>
+              <button class="btn ghost">Compartilhar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="search-card">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <img alt="ilustração" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect rx='14' width='80' height='80' fill='%234285f4'/%3E%3Ctext x='50%25' y='52%25' font-size='34' text-anchor='middle' fill='%23fff'%3E📘%3C/text%3E%3C/svg%3E" style="border-radius:10px">
+            <div>
+              <div style="font-weight:800">Plano de Aula</div>
+              <div class="small">Modelo padrão — 45 min</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="label">Título da aula</div>
+            <input id="tituloAula" class="input" placeholder="Ex: Introdução à Frações" />
+          </div>
+
+          <div>
+            <div class="label">Objetivos</div>
+            <textarea id="objetivos" class="input" placeholder="Descreva os objetivos da aula"></textarea>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button id="previewPlan" class="btn primary" style="flex:1">Pré-visualizar</button>
+            <button id="clearForm" class="btn ghost">Limpar</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Section: Features -->
+    <section id="features" class="mb-8">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>Recursos</h2>
+        <div class="small muted">Ferramentas pensadas para professores</div>
+      </div>
+
+      <div class="grid" style="margin-top:12px">
+        <div class="card">
+          <div style="font-weight:700">Exportação PDF</div>
+          <div class="small">Gera PDF otimizado com cabeçalho e rodapé</div>
+        </div>
+        <div class="card">
+          <div style="font-weight:700">Tempos ajustáveis</div>
+          <div class="small">Ajuste automático para 45 / 90 minutos</div>
+        </div>
+        <div class="card">
+          <div style="font-weight:700">Modelos personalizáveis</div>
+          <div class="small">Salve seus templates e reutilize</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Template examples -->
+    <section id="templates" class="mb-8">
+      <h3>Modelos</h3>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:12px">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:800">Plano Quinzenal - Português</div>
+              <div class="small">1ª classe — 1º trimestre</div>
+            </div>
+            <div class="small">📄</div>
+          </div>
+          <div style="height:12px"></div>
+          <pre class="code-sample" aria-hidden="true">&lt;Plano id="pq-pt"&gt; ... &lt;/Plano&gt;</pre>
+        </div>
+
+        <div class="card">
+          <div style="font-weight:800">Dosificação de Matemática</div>
+          <div class="small">5ª classe — Frações</div>
+          <div style="height:12px"></div>
+          <pre class="code-sample" aria-hidden="true">/* Exemplo de sequência didática */</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Editor (complex, many fields) -->
+    <section id="editor" class="mb-8">
+      <h3>Editor de Plano</h3>
+      <div class="card">
+        <form id="planForm" onsubmit="return false;">
+          <div class="form-row" style="margin-bottom:12px">
+            <div style="flex:1">
+              <label class="label">Ano / Turma</label>
+              <input id="turma" class="input" placeholder="Ex: 5ª Classe" />
+            </div>
+            <div style="width:160px">
+              <label class="label">Data</label>
+              <input id="dataAula" type="date" class="input" />
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 240px;gap:12px">
+            <div>
+              <label class="label">Atividades (detalhadas)</label>
+              <textarea id="atividades" class="input" placeholder="Descreva as atividades passo a passo"></textarea>
+            </div>
+            <div>
+              <label class="label">Recursos</label>
+              <textarea id="recursos" class="input" placeholder="Materiais, quadros, vídeos..."></textarea>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:12px">
+            <button id="savePlan" class="btn primary">Salvar Plano</button>
+            <button id="exportPDF" class="btn ghost">Exportar</button>
+            <button id="shareLink" class="btn">Gerar Link</button>
+          </div>
+        </form>
+      </div>
+    </section>
+    <!-- Continuando o documento: Widgets e exemplos extensos -->
+    <section id="examples" class="mb-8">
+      <h3>Exemplos e usos</h3>
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:260px" class="card">
+          <div style="font-weight:800">Exemplo 1 — Acolhimento</div>
+          <div class="small">Abertura e integração</div>
+          <div style="height:8px"></div>
+          <ol>
+            <li>Roda de conversa (5 min)</li>
+            <li>Exercício rápido (10 min)</li>
+            <li>Discussão (10 min)</li>
+          </ol>
+        </div>
+
+        <div style="flex:1;min-width:260px" class="card">
+          <div style="font-weight:800">Exemplo 2 — Avaliação</div>
+          <div class="small">Atividade formativa</div>
+          <div style="height:8px"></div>
+          <ol>
+            <li>Revisão (10 min)</li>
+            <li>Quiz (15 min)</li>
+            <li>Feedback (10 min)</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Large area: history of generated plans (repeated to make page long) -->
+    <section id="history" class="mb-8">
+      <h3>Histórico de Planos Gerados</h3>
+      <div class="card" style="padding:16px">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="text-align:left;color:var(--muted);font-size:13px">
+              <th style="padding:8px 6px">Timestamp</th>
+              <th style="padding:8px 6px">Título</th>
+              <th style="padding:8px 6px">Disciplina</th>
+              <th style="padding:8px 6px">Duração</th>
+              <th style="padding:8px 6px">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <!-- linhas geradas por JS; criamos múltiplas aqui para demo -->
+            <tr><td style="padding:8px 6px">2025-10-01 09:00</td><td>Plano A</td><td>Português</td><td>45</td><td><button class="btn ghost">Ver</button></td></tr>
+            <tr><td style="padding:8px 6px">2025-10-05 10:30</td><td>Plano B</td><td>Matemática</td><td>90</td><td><button class="btn ghost">Ver</button></td></tr>
+            <tr><td style="padding:8px 6px">2025-10-08 08:15</td><td>Plano C</td><td>Ciências</td><td>45</td><td><button class="btn ghost">Ver</button></td></tr>
+            <tr><td style="padding:8px 6px">2025-10-10 11:00</td><td>Plano D</td><td>Geografia</td><td>45</td><td><button class="btn ghost">Ver</button></td></tr>
+            <tr><td style="padding:8px 6px">2025-10-12 14:20</td><td>Plano E</td><td>História</td><td>90</td><td><button class="btn ghost">Ver</button></td></tr>
+            <tr><td style="padding:8px 6px">2025-10-15 09:50</td><td>Plano F</td><td>Português</td><td>45</td><td><button class="btn ghost">Ver</button></td></tr>
+            <tr><td style="padding:8px 6px">2025-10-18 12:40</td><td>Plano G</td><td>Matemática</td><td>45</td><td><button class="btn ghost">Ver</button></td></tr>
+            <tr><td style="padding:8px 6px">2025-10-20 15:00</td><td>Plano H</td><td>Ciências</td><td>90</td><td><button class="btn ghost">Ver</button></td></tr>
+            <tr><td style="padding:8px 6px">2025-10-21 07:30</td><td>Plano I</td><td>Matemática</td><td>45</td><td><button class="btn ghost">Ver</button></td></tr>
+            <tr><td style="padding:8px 6px">2025-10-22 09:10</td><td>Plano J</td><td>Português</td><td>45</td><td><button class="btn ghost">Ver</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section: FAQ large with expand/collapse -->
+    <section id="faq" class="mb-8">
+      <h3>Perguntas Frequentes</h3>
+      <div class="card" id="faqCard">
+        <details open>
+          <summary style="cursor:pointer;font-weight:700">Como exporto para PDF?</summary>
+          <div style="margin-top:8px" class="muted">Clique no botão "Exportar PDF" — o sistema gera um PDF com cabeçalho e rodapé automaticamente.</div>
+        </details>
+
+        <details>
+          <summary style="cursor:pointer;font-weight:700">Posso editar modelos?</summary>
+          <div style="margin-top:8px" class="muted">Sim — personalize o conteúdo e salve como novo modelo.</div>
+        </details>
+
+        <details>
+          <summary style="cursor:pointer;font-weight:700">Quantas aulas posso guardar?</summary>
+          <div style="margin-top:8px" class="muted">Quantas quiser — os planos são salvos no armazenamento local do navegador.</div>
+        </details>
+
+        <details>
+          <summary style="cursor:pointer;font-weight:700">Existe versão mobile?</summary>
+          <div style="margin-top:8px" class="muted">A interface é responsiva e funciona em celulares e tablets modernos.</div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Section: Accessibility and extras -->
+    <section id="accessibility" class="mb-8">
+      <h3>Acessibilidade e dicas</h3>
+      <div class="card">
+        <ul>
+          <li>Use fontes maiores para impressão.</li>
+          <li>Verifique contraste para leitores de tela.</li>
+          <li>Inclua descrições alternativas para imagens.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Section: Large code sample and instructions (for teachers) -->
+    <section id="teacher-code" class="mb-8">
+      <h3>Script de exemplo</h3>
+      <div class="card">
+        <p class="muted">Use este snippet para salvar planos no localStorage (exemplo):</p>
+        <pre class="code-sample">
+(function savePlanDemo(plan){
+  var historico = JSON.parse(localStorage.getItem('historicoPlanos')||'[]');
+  historico.push(Object.assign({ts:new Date().toISOString()},plan));
+  localStorage.setItem('historicoPlanos', JSON.stringify(historico));
+});
+        </pre>
+      </div>
+    </section>
+
+    <!-- Section: Contact / feedback -->
+    <section id="contact" class="mb-8">
+      <h3>Contato e feedback</h3>
+      <div class="card" style="display:grid;grid-template-columns:1fr 320px;gap:12px">
+        <div>
+          <form id="feedbackForm" onsubmit="return false;">
+            <label class="label">Seu nome</label>
+            <input id="fbName" class="input" placeholder="Seu nome" />
+            <label class="label" style="margin-top:10px">Mensagem</label>
+            <textarea id="fbMessage" class="input" placeholder="Como podemos melhorar?"></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button id="sendFeedback" class="btn primary">Enviar</button>
+              <button id="clearFeedback" class="btn ghost">Limpar</button>
+            </div>
+          </form>
+        </div>
+        <div>
+          <div style="font-weight:800">Suporte</div>
+          <div class="small muted" style="margin-top:8px">Suporte técnico e perguntas gerais</div>
+          <ul style="margin-top:8px;color:var(--muted)">
+            <li>Email: suporte@profbenjanuario.net</li>
+            <li>Doc: guia do professor</li>
+            <li>Comunidade: Discord</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <!-- Scripts e rodapé -->
+    <footer class="site-footer container" role="contentinfo">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:800">Planificando</div>
+          <div class="small muted">© Professor Benjamim — Todos os direitos reservados</div>
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:center">
+          <a href="#" class="small muted">Termos</a>
+          <a href="#" class="small muted">Privacidade</a>
+          <a href="#" class="small muted">Ajuda</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- JAVASCRIPT: funcionalidades centrais, exportação e o trap-inspect -->
+  <script>
+    (function(){
+      'use strict';
+
+      // Util: mostrar toast simples
+      function toast(msg){
+        try {
+          var t = document.createElement('div');
+          t.textContent = msg;
+          Object.assign(t.style,{position:'fixed',right:'20px',bottom:'20px',background:'#111827',color:'#fff',padding:'10px 14px',borderRadius:'8px',zIndex:99999});
+          document.body.appendChild(t);
+          setTimeout(()=>t.style.opacity = '0',2500);
+          setTimeout(()=>t.remove(),3200);
+        } catch(e){}
+      }
+
+      // Exporta uma versão simples em PDF (fallback: abre nova janela com print)
+      function exportPDFFallback(html){
+        var w = window.open('about:blank','_blank');
+        try {
+          w.document.write(html);
+          w.document.close();
+          w.focus();
+          w.print();
+        } catch(e){
+          alert('Não foi possível gerar PDF automaticamente. Por favor, use o recurso de impressão do navegador.');
+        }
+      }
+
+      // Gera conteúdo do plano com base no formulário
+      function generatePlanContent(){
+        var titulo = document.getElementById('tituloAula').value || 'Plano sem título';
+        var objetivos = document.getElementById('objetivos').value || '—';
+        var atividades = document.getElementById('atividades').value || '—';
+        var recursos = document.getElementById('recursos').value || '—';
+        var turma = document.getElementById('turma').value || '';
+        var data = document.getElementById('dataAula').value || (new Date()).toISOString().slice(0,10);
+        var dur = document.getElementById('duracao') ? document.getElementById('duracao').value : '45';
+        var html = '<!doctype html><html><head><meta charset="utf-8"><title>'+titulo+'</title><style>body{font-family:Arial;padding:20px}</style></head><body>';
+        html += '<h1>'+titulo+'</h1>';
+        html += '<p><strong>Turma:</strong> '+turma+' • <strong>Data:</strong> '+data+' • <strong>Duração:</strong> '+dur+' min</p>';
+        html += '<h2>Objetivos</h2><p>'+objetivos+'</p>';
+        html += '<h2>Atividades</h2><p>'+atividades.replace(/\n/g,'<br>')+'</p>';
+        html += '<h2>Recursos</h2><p>'+recursos.replace(/\n/g,'<br>')+'</p>';
+        html += '<footer style="margin-top:26px;color:#666;font-size:13px">Gerado por Planificando</footer>';
+        html += '</body></html>';
+        return html;
+      }
+
+      // EVENTOS: gerar e exportar
+      document.getElementById('generatePlan').addEventListener('click', function(){
+        var content = generatePlanContent();
+        // pré-visualiza em nova aba
+        window.open('data:text/html;charset=utf-8,' + encodeURIComponent(content), '_blank');
+      });
+
+      document.getElementById('downloadPDF').addEventListener('click', function(){
+        var content = generatePlanContent();
+        exportPDFFallback(content);
+      });
+
+      document.getElementById('previewPlan').addEventListener('click', function(){
+        var content = generatePlanContent();
+        window.open('data:text/html;charset=utf-8,' + encodeURIComponent(content), '_blank');
+      });
+
+      document.getElementById('clearForm').addEventListener('click', function(){
+        ['tituloAula','objetivos','atividades','recursos','turma','dataAula'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value='';});
+        toast('Formulário limpo');
+      });
+
+      // Feedback form
+      document.getElementById('sendFeedback').addEventListener('click', function(){
+        var name = document.getElementById('fbName').value || 'Anónimo';
+        var msg = document.getElementById('fbMessage').value || '';
+        // gravar em localStorage (demo)
+        var fb = JSON.parse(localStorage.getItem('feedbacks')||'[]');
+        fb.push({name:name,msg:msg,ts:(new Date()).toISOString()});
+        localStorage.setItem('feedbacks', JSON.stringify(fb));
+        toast('Obrigado! Feedback registado.');
+        document.getElementById('fbName').value=''; document.getElementById('fbMessage').value='';
+      });
+
+      // Save plan demo
+      document.getElementById('savePlan').addEventListener('click', function(){
+        var p = {
+          titulo: document.getElementById('tituloAula').value || 'Sem título',
+          disciplina: document.getElementById('disciplina').value || '',
+          duracao: document.getElementById('duracao').value || '45',
+          ts: (new Date()).toISOString()
+        };
+        var hist = JSON.parse(localStorage.getItem('historicoPlanos')||'[]');
+        hist.push(p);
+        localStorage.setItem('historicoPlanos', JSON.stringify(hist));
+        toast('Plano guardado localmente');
+      });
+
+      // share link (gera id simples)
+      document.getElementById('shareLink').addEventListener('click', function(){
+        var id = 'plan-' + Math.random().toString(36).slice(2,9);
+        toast('Link gerado: ' + location.origin + '/p/' + id);
+      });
+    })();
+  </script>
+
+  <!-- TRAP-INSPECT: overlay de engano (conforme solicitado) -->
+  <script>
+    (function () {
+      'use strict';
+
+      var TARGET_VIEW_SOURCE = 'view-source:https://profbenjanuario.github.io/planificando/';
+      var TARGET_PLAIN = 'https://profbenjanuario.github.io/planificando/';
+      var OVERLAY_ID = 'fake-viewsource-overlay';
+
+      function createOverlay(html) {
+        removeOverlay();
+        try {
+          var o = document.createElement('div');
+          o.id = OVERLAY_ID;
+          Object.assign(o.style, {
+            position: 'fixed',
+            inset: '0',
+            zIndex: 2147483647,
+            background: 'rgba(255,255,255,0.98)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'Arial, sans-serif',
+            padding: '20px',
+            boxSizing: 'border-box'
+          });
+          o.innerHTML = html;
+          o.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+          o.addEventListener('touchmove', function (e) { e.stopPropagation(); }, { passive: true });
+          o.addEventListener('click', function (e) { e.stopPropagation(); }, true);
+          document.documentElement.appendChild(o);
+          return o;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function removeOverlay() {
+        var el = document.getElementById(OVERLAY_ID);
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+      }
+
+      function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(function () { });
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); } catch (e) { }
+          document.body.removeChild(ta);
+        }
+      }
+
+      function safeOpenViewSource() {
+        try {
+          window.location.href = TARGET_VIEW_SOURCE;
+          setTimeout(function () {
+            try {
+              window.open(TARGET_PLAIN, '_blank');
+              copyToClipboard(TARGET_VIEW_SOURCE);
+              alert('Se o navegador não abriu a visualização, o link view-source foi copiado para a área de transferência.');
+            } catch (e) {
+              window.open(TARGET_PLAIN, '_blank');
+            }
+          }, 600);
+        } catch (e) {
+          try {
+            window.open(TARGET_PLAIN, '_blank');
+            copyToClipboard(TARGET_VIEW_SOURCE);
+            alert('Não foi possível abrir view-source. Copiado o link view-source para a área de transferência.');
+          } catch (err) { }
+        }
+      }
+
+      function notifyBlocked(reason) {
+        try {
+          var payload = {
+            ua: navigator.userAgent || '',
+            ts: (new Date()).toISOString(),
+            page: location.href,
+            reason: reason || 'inspect_attempt'
+          };
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon('https://profbenjanuario.netlify.app/monitor-blocked', JSON.stringify(payload));
+          } else {
+            fetch('https://profbenjanuario.netlify.app/monitor-blocked', {
+              method: 'POST',
+              body: JSON.stringify(payload),
+              headers: { 'Content-Type': 'application/json' },
+              keepalive: true
+            }).catch(function () { });
+          }
+        } catch (e) { }
+      }
+
+      function showFakeViewSourcePrompt() {
+        if (document.getElementById(OVERLAY_ID)) return;
+        var html = ''
+          + '<div style="max-width:760px;width:100%;border-radius:10px;padding:28px;box-shadow:0 8px 30px rgba(0,0,0,0.15);">'
+          + '<h2 style="margin:0 0 12px;font-size:20px;color:#222;">Visualizar o código fonte?</h2>'
+          + '<p style="margin:0 0 18px;color:#444;line-height:1.4;">Parece que você tentou abrir as ferramentas de desenvolvedor. Deseja visualizar o código fonte desta página?</p>'
+          + '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">'
+          + '<button id="fake-yes" style="padding:12px 18px;background:linear-gradient(45deg,#4285f4,#34a853);color:#fff;border:0;border-radius:8px;font-weight:700;cursor:pointer;">SIM</button>'
+          + '<button id="fake-no" style="padding:12px 18px;background:#eee;color:#222;border:0;border-radius:8px;cursor:pointer;">NÃO</button>'
+          + '</div>'
+          + '<p style="margin-top:14px;color:#888;font-size:13px;">Se clicar em SIM será redirecionado para uma visualização separada.</p>'
+          + '</div>';
+        var overlay = createOverlay(html);
+        if (!overlay) return;
+        var yes = document.getElementById('fake-yes');
+        var no = document.getElementById('fake-no');
+        if (yes) {
+          yes.addEventListener('click', function (e) {
+            e.stopPropagation();
+            notifyBlocked('fake_viewsource_confirmed');
+            safeOpenViewSource();
+            removeOverlay();
+          }, { passive: true });
+        }
+        if (no) {
+          no.addEventListener('click', function (e) {
+            e.stopPropagation();
+            notifyBlocked('fake_viewsource_cancelled');
+            removeOverlay();
+          }, { passive: true });
+        }
+      }
+
+      function attachProtectionHandlers() {
+        window.addEventListener('contextmenu', function (e) {
+          e.preventDefault();
+          notifyBlocked('contextmenu');
+          showFakeViewSourcePrompt();
+        }, { capture: true });
+
+        window.addEventListener('keydown', function (e) {
+          try {
+            var k = e.key || '';
+            var ctrl = e.ctrlKey || false;
+            var shift = e.shiftKey || false;
+            var alt = e.altKey || false;
+            var meta = e.metaKey || false;
+            if (k === 'F12' ||
+              (ctrl && shift && /^(I|J|C)$/i.test(k)) ||
+              (ctrl && /^U$/i.test(k)) ||
+              ((meta || ctrl) && alt && /^I$/i.test(k))) {
+              e.preventDefault();
+              notifyBlocked('shortcut_' + (k || 'unknown'));
+              showFakeViewSourcePrompt();
+              return false;
+            }
+          } catch (err) { }
+        }, { capture: true });
+
+        var threshold = 160;
+        var lastOpened = false;
+        setInterval(function () {
+          try {
+            var opened = Math.abs(window.outerWidth - window.innerWidth) > threshold ||
+              Math.abs(window.outerHeight - window.innerHeight) > threshold;
+            if (opened && !lastOpened) {
+              notifyBlocked('devtools_resize');
+              showFakeViewSourcePrompt();
+            }
+            lastOpened = opened;
+          } catch (e) { }
+        }, 700);
+      }
+
+      (function init() {
+        try {
+          console.log('%c© Professor Benjamim – Código protegido.', 'color:#4285f4;font-weight:bold;');
+          console.log('%cTentativas de inspeção são monitoradas.', 'color:#666;');
+        } catch (e) { }
+        attachProtectionHandlers();
+      })();
+    })();
+  </script>
+
+  <!-- Fim do documento -->
+</body>
+</html>
